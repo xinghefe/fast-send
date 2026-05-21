@@ -70,7 +70,7 @@ const MediaGrid: React.FC<{
         className={`relative aspect-square cursor-pointer overflow-hidden group/item ${count === 1 ? 'max-h-[400px] aspect-auto rounded-xl' : 'rounded'}`}
         onClick={() => onPreview(url, isVid ? 'video' : 'image', index, files)}
       >
-        {file.type === 'image' || file.type === 'video' ? (
+        {file.type === 'image' ? (
           <>
             <img
               src={url}
@@ -78,13 +78,27 @@ const MediaGrid: React.FC<{
               className={`w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300 ${count === 1 ? 'object-contain bg-black/5' : ''}`}
               alt={file.originalName}
             />
-            {isVid && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                <div className="w-10 h-10 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/40">
-                  <Play size={20} fill="currentColor" />
-                </div>
+            {isLast && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-lg backdrop-blur-[2px]">
+                +{count - 9}
               </div>
             )}
+          </>
+        ) : file.type === 'video' ? (
+          <>
+            <video
+              src={url}
+              className={`w-full h-full object-cover ${count === 1 ? 'object-contain bg-black/5' : ''} [&::-webkit-media-controls]:!hidden [&::-webkit-media-controls-panel]:!hidden`}
+              preload="metadata"
+              playsInline
+              muted
+              disablePictureInPicture
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
+              <div className="w-10 h-10 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/40">
+                <Play size={20} fill="currentColor" />
+              </div>
+            </div>
             {isLast && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-lg backdrop-blur-[2px]">
                 +{count - 9}
