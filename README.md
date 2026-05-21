@@ -100,7 +100,7 @@ npm run build:all
 <div align="center">
   <img src="https://img.jimukit.com/common/xinghefe_1.webp" />
   <br/>
-  <b>扫码或搜索“前端星河”，一起探索前端技术的浩瀚星空。</b>
+  <b>扫码或搜索“星河FE”，一起探索前端技术的浩瀚星空。</b>
 </div>
 
 ---
