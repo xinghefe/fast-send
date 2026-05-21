@@ -45,7 +45,7 @@ async function buildTarget(target, isGUI) {
     ? path.join(outDir, `${namePrefix}_${label}${ext}`)
     : path.join(outDir, `${namePrefix}_cli_${label}${ext}`);
   const ldFlags = isGUI
-    ? ['-s', '-w', '-H windowsgui']
+    ? ['-s', '-w', '-H windowsgui', '-X', 'main.isRelease=true']
     : ['-s', '-w'];
 
   const env = {

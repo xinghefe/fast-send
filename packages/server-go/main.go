@@ -17,10 +17,13 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/skratchdot/open-golang/open"
 )
 
 //go:embed all:dist
 var clientDist embed.FS
+
+var isRelease = false // 正式包由 -ldflags -X main.isRelease=true 覆盖
 
 func main() {
 	config.InitDirs()
@@ -102,6 +105,10 @@ func runHTTPServer(hub *ws.Hub, store *db.Store) {
 	mdnsServer := discovery.RegistermDNS(5678)
 	if mdnsServer != nil {
 		defer mdnsServer.Shutdown()
+	}
+
+	if isRelease {
+		open.Run("http://localhost:5678")
 	}
 
 	fmt.Printf("FastSend Go Server 启动在 http://%s:5678\n", utils.GetLocalIP())
