@@ -9,7 +9,7 @@
     "packages/server-go"
   ],
   "scripts": {
-    "server": "cd packages/server-go && go run main.go",
+    "server": "cd packages/server-go && go build -o out\\FastSend.exe . && .\\out\\FastSend.exe",
     "client": "cd packages/client && cross-env CAP_HMR=true npx cap sync android && npm run dev",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "build:client": "npm run build --workspace=@fast-send/client && (if exist packages\\server-go\\dist (rmdir /s /q packages\\server-go\\dist)) && xcopy /e /i /y packages\\client\\dist packages\\server-go\\dist",

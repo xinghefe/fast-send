@@ -12,12 +12,12 @@ import (
 func StartClipboardService(hub *ws.Hub, store *db.Store) {
 	lastText, _ := clipboard.ReadAll()
 	for {
-		time.Sleep(time.Second)
-
-		// 检查剪贴板同步开关
 		if store.GetSetting("clipboardSync") != "true" {
+			time.Sleep(5 * time.Second)
 			continue
 		}
+
+		time.Sleep(time.Second)
 
 		text, err := clipboard.ReadAll()
 		if err == nil && text != "" && text != lastText {
