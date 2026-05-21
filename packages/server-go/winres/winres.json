@@ -11,10 +11,10 @@
     "#1": {
       "0409": {
         "identity": {
-          "name": "",
-          "version": ""
+          "name": "FastSend",
+          "version": "1.0.0.0"
         },
-        "description": "",
+        "description": "FastSend - LAN file & clipboard sync tool",
         "minimum-os": "win7",
         "execution-level": "as invoker",
         "ui-access": false,
@@ -41,14 +41,14 @@
         },
         "info": {
           "0409": {
-            "Comments": "",
-            "CompanyName": "",
-            "FileDescription": "",
+            "Comments": "LAN file, text & clipboard sync tool",
+            "CompanyName": "FastSend",
+            "FileDescription": "FastSend - LAN file & clipboard sync tool",
             "FileVersion": "1.0.0.0",
-            "InternalName": "",
-            "LegalCopyright": "",
+            "InternalName": "FastSend",
+            "LegalCopyright": "Copyright (C) 2026 FastSend",
             "LegalTrademarks": "",
-            "OriginalFilename": "",
+            "OriginalFilename": "FastSend.exe",
             "PrivateBuild": "",
             "ProductName": "FastSend",
             "ProductVersion": "1.0.0.0",
