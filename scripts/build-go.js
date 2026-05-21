@@ -1,16 +1,16 @@
-import { execSync } from 'child_process';
+import { execSync, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const targets = [
-  // Windows
   { goos: 'windows', goarch: 'amd64', label: 'win-x64', ext: '.exe' },
   { goos: 'windows', goarch: 'arm64', label: 'win-arm64', ext: '.exe' },
   { goos: 'windows', goarch: '386', label: 'win-x86', ext: '.exe' },
-  // Linux
   { goos: 'linux', goarch: 'amd64', label: 'linux-x64', ext: '' },
   { goos: 'linux', goarch: 'arm64', label: 'linux-arm64', ext: '' },
-  // macOS
   { goos: 'darwin', goarch: 'amd64', label: 'macos-x64', ext: '' },
   { goos: 'darwin', goarch: 'arm64', label: 'macos-arm64', ext: '' },
 ];
@@ -22,63 +22,73 @@ if (!fs.existsSync(outDir)) {
 
 const serverDir = path.resolve('packages/server-go');
 
-// Load version from package.json
 const rootPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const version = rootPkg.version;
 const namePrefix = `FastSend_v${version}`;
 
-console.log(`📦 Starting multi-platform Go build for v${version}...`);
+console.log(`Building for v${version}...`);
 
-// 1. Prepare Windows resources (only if windows targets exist)
+// 生成 Windows 资源文件（串行，很快）
 if (targets.some(t => t.goos === 'windows')) {
   try {
-    console.log('🎨 Generating Windows resources...');
     execSync('go-winres make', { cwd: serverDir, stdio: 'inherit' });
   } catch (err) {
-    console.warn('⚠️ go-winres failed, continuing without it (Windows metadata may be missing).');
+    console.warn('go-winres failed, continuing without it');
   }
 }
 
-for (const { goos, goarch, label, ext } of targets) {
-  console.log(`\n🚀 Building for ${goos}/${goarch} (${label})...`);
+// 并行构建所有目标
+async function buildTarget(target, isGUI) {
+  const { goos, goarch, label, ext } = target;
+  const typeLabel = isGUI ? 'GUI' : 'CLI';
+  const outFile = isGUI
+    ? path.join(outDir, `${namePrefix}_${label}${ext}`)
+    : path.join(outDir, `${namePrefix}_cli_${label}${ext}`);
+  const ldFlags = isGUI
+    ? ['-s', '-w', '-H windowsgui']
+    : ['-s', '-w'];
 
   const env = {
     ...process.env,
     GOOS: goos,
     GOARCH: goarch,
-    CGO_ENABLED: '0' // Ensure static linking for maximum portability
+    CGO_ENABLED: '0',
   };
 
-  const ldFlags = ['-s', '-w'];
-
-  // CLI build
   try {
-    const cliOut = path.join(outDir, `${namePrefix}_cli_${label}${ext}`);
-    execSync(`go build -ldflags="${ldFlags.join(' ')}" -o "${cliOut}"`, {
-      cwd: serverDir,
-      env,
-      stdio: 'inherit'
-    });
-    console.log(`✅ CLI built: ${cliOut}`);
+    await execAsync(
+      `go build -ldflags="${ldFlags.join(' ')}" -o "${outFile}"`,
+      { cwd: serverDir, env }
+    );
+    return { label, type: typeLabel, status: 'ok' };
   } catch (err) {
-    console.error(`❌ Failed to build CLI for ${label}:`, err.message);
-  }
-
-  // GUI build (Windows only features)
-  if (goos === 'windows') {
-    try {
-      const guiOut = path.join(outDir, `${namePrefix}_${label}${ext}`);
-      const guiLdFlags = [...ldFlags, '-H windowsgui'];
-      execSync(`go build -ldflags="${guiLdFlags.join(' ')}" -o "${guiOut}"`, {
-        cwd: serverDir,
-        env,
-        stdio: 'inherit'
-      });
-      console.log(`✅ GUI built: ${guiOut}`);
-    } catch (err) {
-      console.error(`❌ Failed to build GUI for ${label}:`, err.message);
-    }
+    const msg = err.stderr ? err.stderr.trim() : err.message;
+    return { label, type: typeLabel, status: 'fail', error: msg };
   }
 }
 
-console.log('\n✨ All platforms build completed!');
+const builds = [];
+for (const target of targets) {
+  builds.push(buildTarget(target, false));
+  if (target.goos === 'windows') {
+    builds.push(buildTarget(target, true));
+  }
+}
+
+console.log(`Building ${builds.length} binaries in parallel...\n`);
+
+for (const b of builds) {
+  b.then(r => {
+    if (r.status === 'ok') {
+      console.log(`  ✅ ${r.label} ${r.type}`);
+    } else {
+      console.log(`  ❌ ${r.label} ${r.type}\n     ${r.error}`);
+    }
+  });
+}
+
+const results = await Promise.allSettled(builds);
+const ok = results.filter(r => r.status === 'fulfilled' && r.value.status === 'ok');
+const fail = results.filter(r => r.status === 'fulfilled' && r.value.status === 'fail');
+
+console.log(`\nDone: ${ok.length} succeeded, ${fail.length} failed`);
