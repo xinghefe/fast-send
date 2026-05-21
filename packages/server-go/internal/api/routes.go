@@ -21,6 +21,8 @@ import (
 func SetupRoutes(r *gin.Engine, hub *ws.Hub, store *db.Store) {
 	api := r.Group("/api")
 	{
+		api.GET("/thumbnail/*filepath", ThumbnailHandler)
+
 		api.GET("/config", func(c *gin.Context) {
 			ips := utils.GetAllLocalIPs()
 			primaryIP := "127.0.0.1"

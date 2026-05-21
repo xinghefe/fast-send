@@ -59,6 +59,7 @@ const MediaGrid: React.FC<{
 
   const renderItem = (file: FileInfo, index: number) => {
     const url = `${baseUrl}/download/${file.filename}`
+    const thumbUrl = file.type === 'image' ? `${baseUrl}/api/thumbnail/${file.filename}` : url
     const isVid = file.type === 'video'
     const isLast = count > 9 && index === 8
 
@@ -73,7 +74,7 @@ const MediaGrid: React.FC<{
         {file.type === 'image' ? (
           <>
             <img
-              src={url}
+              src={thumbUrl}
               loading="lazy"
               className={`w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300 ${count === 1 ? 'bg-black/5' : ''}`}
               alt={file.originalName}
@@ -132,6 +133,8 @@ export const MessageItem: React.FC<Props> = React.memo(
     const isVid = ['mp4', 'mov', 'webm'].includes(ext)
     const downloadUrl =
       item.type === 'file' ? `${baseUrl}/download/${item.filename}` : ''
+    const thumbUrl =
+      item.type === 'file' && isImg ? `${baseUrl}/api/thumbnail/${item.filename}` : downloadUrl
     const contentToCopy = item.type === 'text' ? item.content : downloadUrl
 
     // 已保存状态
@@ -216,7 +219,7 @@ export const MessageItem: React.FC<Props> = React.memo(
                     {isImg && !item.progress ? (
                       <div className="relative min-h-[100px] bg-slate-100 rounded-lg overflow-hidden max-h-[500px] flex items-center justify-center">
                         <img
-                          src={downloadUrl}
+                          src={thumbUrl}
                           loading="eager"
                           onClick={() => onPreview(downloadUrl, 'image', 0, [{ filename: item.filename || '', originalName: item.originalName || '', size: item.size || '', type: 'image' }])}
                           className="w-full rounded-lg cursor-zoom-in hover:brightness-95 shadow-sm block"

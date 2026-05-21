@@ -9,6 +9,7 @@ var (
 	BaseDir   string
 	UploadDir string
 	ChunkDir  string
+	ThumbDir  string
 )
 
 // IconData (一个简单的蓝色 16x16 图标)
@@ -17862,9 +17863,11 @@ func UpdateDirs(base string) {
 	BaseDir = base
 	UploadDir = filepath.Join(BaseDir, "uploads")
 	ChunkDir = filepath.Join(BaseDir, "chunks")
+	ThumbDir = filepath.Join(BaseDir, "thumbnails")
 
 	os.MkdirAll(UploadDir, 0755)
 	os.MkdirAll(ChunkDir, 0755)
+	os.MkdirAll(ThumbDir, 0755)
 }
 
 func InitDirs() {
