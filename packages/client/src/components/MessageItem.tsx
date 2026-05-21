@@ -67,7 +67,7 @@ const MediaGrid: React.FC<{
     return (
       <div
         key={index}
-        className={`relative aspect-square cursor-pointer overflow-hidden group/item ${count === 1 ? 'max-h-[400px] aspect-auto rounded-xl' : 'rounded'}`}
+        className={`relative cursor-pointer overflow-hidden group/item ${count === 1 ? 'max-h-[400px] aspect-auto rounded-xl flex items-center justify-center' : 'aspect-square rounded'}`}
         onClick={() => onPreview(url, isVid ? 'video' : 'image', index, files)}
       >
         {file.type === 'image' ? (
@@ -75,7 +75,7 @@ const MediaGrid: React.FC<{
             <img
               src={url}
               loading="lazy"
-              className={`w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300 ${count === 1 ? 'object-contain bg-black/5' : ''}`}
+              className={`w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300 ${count === 1 ? 'bg-black/5' : ''}`}
               alt={file.originalName}
             />
             {isLast && (
@@ -88,7 +88,7 @@ const MediaGrid: React.FC<{
           <>
             <video
               src={url}
-              className={`w-full h-full object-cover ${count === 1 ? 'object-contain bg-black/5' : ''} [&::-webkit-media-controls]:!hidden [&::-webkit-media-controls-panel]:!hidden`}
+              className={`w-full h-full object-cover ${count === 1 ? 'bg-black/5' : ''} [&::-webkit-media-controls]:!hidden [&::-webkit-media-controls-panel]:!hidden`}
               preload="metadata"
               playsInline
               muted
@@ -214,21 +214,21 @@ export const MessageItem: React.FC<Props> = React.memo(
                 ) : (
                   <div className="space-y-2">
                     {isImg && !item.progress ? (
-                      <div className="relative min-h-[100px] bg-slate-100 rounded-lg overflow-hidden">
+                      <div className="relative min-h-[100px] bg-slate-100 rounded-lg overflow-hidden max-h-[500px] flex items-center justify-center">
                         <img
                           src={downloadUrl}
                           loading="eager"
                           onClick={() => onPreview(downloadUrl, 'image', 0, [{ filename: item.filename || '', originalName: item.originalName || '', size: item.size || '', type: 'image' }])}
-                          className="max-w-full rounded-lg cursor-zoom-in hover:brightness-95 shadow-sm mx-auto block"
+                          className="w-full rounded-lg cursor-zoom-in hover:brightness-95 shadow-sm block"
                           style={{ minHeight: '100px' }}
                         />
                       </div>
                     ) : isVid && !item.progress ? (
                       <div
-                        className="relative cursor-pointer overflow-hidden rounded-lg group/vid bg-slate-100 min-h-[150px]"
+                        className="relative cursor-pointer overflow-hidden rounded-lg group/vid bg-slate-100 min-h-[150px] max-h-[500px] flex items-center justify-center"
                         onClick={() => onPreview(downloadUrl, 'video', 0, [{ filename: item.filename || '', originalName: item.originalName || '', size: item.size || '', type: 'video' }])}
                       >
-                        <video src={downloadUrl} className="max-w-full block" />
+                        <video src={downloadUrl} className="w-full block" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vid:bg-black/40 transition-colors">
                           <div className="w-12 h-12 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/50">
                             <Play size={24} fill="currentColor" />
