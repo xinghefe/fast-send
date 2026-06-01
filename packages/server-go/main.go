@@ -22,7 +22,7 @@ import (
 //go:embed all:dist
 var clientDist embed.FS
 
-var isRelease = false // 正式包由 -ldflags -X main.isRelease=true 覆盖
+var isRelease = "false" // 正式包由 -ldflags -X main.isRelease=true 覆盖
 
 func main() {
 	config.InitDirs()
@@ -100,7 +100,7 @@ func runHTTPServer(hub *ws.Hub, store *db.Store) {
 		hub.HandleWS(c.Writer, c.Request)
 	})
 
-	if isRelease {
+	if isRelease == "true" {
 		open.Run("http://localhost:5678")
 	}
 
