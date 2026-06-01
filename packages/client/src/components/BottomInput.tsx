@@ -7,7 +7,6 @@ interface BottomInputProps {
   isMenuOpen: boolean
   setIsMenuOpen: (open: boolean) => void
   onSend: () => void
-  isMobile: boolean
 }
 
 export const BottomInput: React.FC<BottomInputProps> = ({
@@ -16,7 +15,6 @@ export const BottomInput: React.FC<BottomInputProps> = ({
   isMenuOpen,
   setIsMenuOpen,
   onSend,
-  isMobile,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -29,7 +27,7 @@ export const BottomInput: React.FC<BottomInputProps> = ({
   }, [inputText])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       onSend()
     }

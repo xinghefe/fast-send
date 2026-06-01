@@ -4,25 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cross-env CAP_HMR=true vite",
+    "dev": "vite",
     "build": "tsc && vite build",
-    "sync": "cap sync android",
-    "sync:hmr": "cross-env CAP_HMR=true cap sync android",
-    "android:open": "cap open android",
     "preview": "vite preview",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@capacitor-community/media": "9.1.0",
-    "@capacitor-mlkit/barcode-scanning": "8.0.1",
-    "@capacitor/app": "8.1.0",
-    "@capacitor/camera": "8.1.0",
-    "@capacitor/clipboard": "8.0.1",
-    "@capacitor/core": "8.3.1",
-    "@capacitor/filesystem": "8.1.2",
-    "@capacitor/local-notifications": "8.0.2",
-    "@capacitor/network": "8.0.1",
-    "@capacitor/status-bar": "8.0.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
     "qrcode.react": "4.2.0",
@@ -35,8 +22,6 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "@capacitor/android": "8.3.1",
-    "@capacitor/cli": "8.3.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-window": "1.8.8",

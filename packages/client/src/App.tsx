@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { QrCode, X, UploadCloud, Settings, Scan, RefreshCw, MoreHorizontal } from 'lucide-react'
+import { QrCode, UploadCloud, Settings } from 'lucide-react'
 import { ServerConfig, FileInfo } from './types'
 import { MessageItem } from './components/MessageItem'
 import { ToastContainer, Toast } from './components/ToastContainer'
@@ -13,12 +13,7 @@ import { QRModal } from './components/QRModal'
 import { useSocket } from './hooks/useSocket'
 import { useItems } from './hooks/useItems'
 import { useUpload } from './hooks/useUpload'
-import { useDiscovery } from './hooks/useDiscovery'
 import { requestNotificationPermission } from './utils/notifications'
-import { saveToAlbum, saveFileToLocal, saveAllMediaFromGallery } from './utils/media'
-import { App as CapApp } from '@capacitor/app'
-import { Capacitor } from '@capacitor/core'
-import { StatusBar, Style } from '@capacitor/status-bar'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 const CLIENT_ID = (() => {
@@ -30,14 +25,12 @@ const CLIENT_ID = (() => {
   return id
 })()
 
-const isMobile = Capacitor.getPlatform() !== 'web'
-
 export default function App() {
   const [baseUrl, setBaseUrl] = useState(() => {
     const lastUrl = localStorage.getItem('fast_send_last_url')
     const currentUrl = `http://${window.location.hostname}:5678`
     // 在浏览器环境下，如果当前域名有效，优先使用当前域名
-    if (!isMobile && window.location.hostname) {
+    if (window.location.hostname) {
       return currentUrl
     }
     return lastUrl || currentUrl
@@ -56,7 +49,6 @@ export default function App() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeMenu, setActiveMenu] = useState<{ id: number; x: number; y: number } | null>(null)
-  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
   const [isServerLocal, setIsServerLocal] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const dragCounter = useRef(0)
@@ -66,25 +58,6 @@ export default function App() {
   const [clipboardSync, setClipboardSync] = useState(false)
 
   const [selectedQRip, setSelectedQRip] = useState<string>('')
-
-  // 持久化已保存记录（key 格式：file_{itemId} | gallery_{itemId}）
-  const [savedItems, setSavedItems] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem('fast_send_saved_items')
-      return raw ? new Set(JSON.parse(raw)) : new Set()
-    } catch {
-      return new Set()
-    }
-  })
-
-  const addSavedItem = useCallback((key: string) => {
-    setSavedItems(prev => {
-      const next = new Set(prev)
-      next.add(key)
-      try { localStorage.setItem('fast_send_saved_items', JSON.stringify([...next])) } catch {}
-      return next
-    })
-  }, [])
 
   useEffect(() => {
     if (config?.ip && !selectedQRip) {
@@ -100,37 +73,13 @@ export default function App() {
     }, 3000)
   }, [])
 
-  const { socket, devices } = useSocket(baseUrl, CLIENT_ID, isMobile, false)
+  const { socket, devices } = useSocket(baseUrl, CLIENT_ID, false)
   const { items, setItems, fetchData, handleDelete } = useItems(baseUrl, socket, CLIENT_ID, showToast)
   const { uploadBatch } = useUpload(baseUrl, CLIENT_ID, setItems, showToast)
-  const { scan, isScanning } = useDiscovery(baseUrl, setBaseUrl, fetchData, showToast)
 
   useEffect(() => {
     requestNotificationPermission()
   }, [])
-
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    const updateStatusBar = async () => {
-      try {
-        if (previewMedia) {
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: '#000000' });
-        } else if (showQR || showSettings) {
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: '#666666' });
-        } else {
-          await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setBackgroundColor({ color: '#ffffff' });
-        }
-      } catch (e) {
-        console.error('Failed to update status bar:', e);
-      }
-    };
-    
-    updateStatusBar();
-  }, [previewMedia, showQR, showSettings]);
 
   useEffect(() => {
     if (!baseUrl) return
@@ -196,44 +145,6 @@ export default function App() {
     }
   }
 
-  const handleScan = async () => {
-    if (!isMobile) return
-    try {
-      const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
-      const isSupported = await BarcodeScanner.isSupported()
-      if (!isSupported.supported) {
-        showToast('设备不支持扫码', 'error')
-        return
-      }
-
-      const status = await BarcodeScanner.checkPermissions()
-      if (status.camera !== 'granted') {
-        const res = await BarcodeScanner.requestPermissions()
-        if (res.camera !== 'granted') {
-          showToast('未获得相机权限', 'error')
-          return
-        }
-      }
-
-      document.body.classList.add('barcode-scanner-active')
-      const { barcodes } = await BarcodeScanner.scan()
-      document.body.classList.remove('barcode-scanner-active')
-
-      if (barcodes.length > 0) {
-        const qrUrl = barcodes[0].rawValue
-        if (qrUrl && qrUrl.startsWith('http')) {
-          setBaseUrl(qrUrl)
-          localStorage.setItem('fast_send_last_url', qrUrl)
-          showToast('已通过扫码连接', 'success')
-          fetchData(qrUrl)
-        }
-      }
-    } catch (e) {
-      console.error('Scan error:', e)
-      document.body.classList.remove('barcode-scanner-active')
-    }
-  }
-
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault()
     dragCounter.current++
@@ -285,8 +196,6 @@ export default function App() {
     }
   }
 
-  const lastBackPressTime = useRef<number>(0)
-
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -299,41 +208,12 @@ export default function App() {
       ) return
 
       if (activeMenu) setActiveMenu(null)
-      if (isMoreMenuOpen) setIsMoreMenuOpen(false)
       if (isMenuOpen) setIsMenuOpen(false)
     }
 
     document.addEventListener('mousedown', handleGlobalClick)
     return () => document.removeEventListener('mousedown', handleGlobalClick)
-  }, [activeMenu, isMoreMenuOpen])
-
-  useEffect(() => {
-    const backHandler = CapApp.addListener('backButton', ({ canGoBack }) => {
-      if (previewMedia) {
-        setPreviewMedia(null)
-      } else if (showQR) {
-        setShowQR(false)
-      } else if (showSettings) {
-        setShowSettings(false)
-      } else if (isMenuOpen) {
-        setIsMenuOpen(false)
-      } else if (activeMenu) {
-        setActiveMenu(null)
-      } else {
-        const now = Date.now()
-        if (now - lastBackPressTime.current < 2000) {
-          CapApp.exitApp()
-        } else {
-          lastBackPressTime.current = now
-          showToast('再按一次退出应用', 'info')
-        }
-      }
-    })
-
-    return () => {
-      backHandler.then((h) => h.remove())
-    }
-  }, [previewMedia, showQR, showSettings, isMenuOpen, activeMenu, showToast])
+  }, [activeMenu, isMenuOpen])
 
   return (
     <div
@@ -372,49 +252,12 @@ export default function App() {
             <QrCode size={20} />
           </button>
 
-          {!isMobile ? (
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-xl transition-all"
-            >
-              <Settings size={20} />
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                className={`p-2.5 rounded-xl transition-all more-menu-trigger ${isMoreMenuOpen ? "bg-blue-600 text-white shadow-lg" : "bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600"}`}
-              >
-                <MoreHorizontal size={20} />
-              </button>
-
-              {isMoreMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white backdrop-blur-xl border border-slate-200 shadow-2xl rounded-xl py-2 z-[100] animate-in fade-in zoom-in-95 duration-100 more-menu-container">
-                  <button
-                    onClick={() => { setIsMoreMenuOpen(false); scan(); }}
-                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 flex items-center gap-3 text-slate-700 transition-colors"
-                  >
-                    <RefreshCw size={18} className={`text-slate-400 ${isScanning ? "animate-spin" : ""}`} />
-                    <span className="font-medium">发现设备</span>
-                  </button>
-                  <button
-                    onClick={() => { setIsMoreMenuOpen(false); handleScan(); }}
-                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 flex items-center gap-3 text-slate-700 transition-colors"
-                  >
-                    <Scan size={18} className="text-slate-400" />
-                    <span className="font-medium">扫码连接</span>
-                  </button>
-                  <button
-                    onClick={() => { setIsMoreMenuOpen(false); setShowSettings(true); }}
-                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-blue-50 flex items-center gap-3 text-slate-700 transition-colors"
-                  >
-                    <Settings size={18} className="text-slate-400" />
-                    <span className="font-medium">系统设置</span>
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-xl transition-all"
+          >
+            <Settings size={20} />
+          </button>
         </div>
         </div>
       </div>
@@ -444,19 +287,6 @@ export default function App() {
                 onPreview={(url, type, idx, files) =>
                   setPreviewMedia({ url, type, index: idx, items: files })
                 }
-                onSaveToAlbum={async (url, filename) => {
-                  const ok = await saveToAlbum(url, filename, showToast)
-                  if (ok) addSavedItem(`file_${item.id}`)
-                }}
-                onSaveAllMedia={async (files, bu) => {
-                  const ok = await saveAllMediaFromGallery(files, bu, showToast)
-                  if (ok) addSavedItem(`gallery_${item.id}`)
-                }}
-                onSaveFileToLocal={async (url, filename) => {
-                  const ok = await saveFileToLocal(url, filename, showToast)
-                  if (ok) addSavedItem(`file_${item.id}`)
-                }}
-                savedItems={savedItems}
                 isMenuOpen={activeMenu?.id === item.id}
                 onToggleMenu={handleToggleMenu}
                 menuPos={
@@ -469,7 +299,6 @@ export default function App() {
           )}
           onScroll={() => {
             if (activeMenu) setActiveMenu(null)
-            if (isMoreMenuOpen) setIsMoreMenuOpen(false)
           }}
         />
         {items.length === 0 && (
@@ -487,11 +316,9 @@ export default function App() {
           isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
           onSend={handleSendText}
-          isMobile={isMobile}
         />
         <ActionPanel
           isOpen={isMenuOpen}
-          isMobile={isMobile}
           onChangeAction={uploadBatch}
         />
         <div className="pb-safe" />
@@ -524,7 +351,6 @@ export default function App() {
           initialIndex={previewMedia.index || 0}
           baseUrl={baseUrl}
           onClose={() => setPreviewMedia(null)}
-          onSaveToAlbum={(url, filename) => saveToAlbum(url, filename, showToast)}
         />
       )}
     </div>

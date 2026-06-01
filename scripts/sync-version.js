@@ -21,24 +21,7 @@ const rootPkg = JSON.parse(fs.readFileSync(rootPkgPath, 'utf8'));
 rootPkg.version = cleanVersion;
 fs.writeFileSync(rootPkgPath, JSON.stringify(rootPkg, null, 2) + '\n');
 
-// 2. 同步到 Android build.gradle
-const gradlePath = 'packages/client/android/app/build.gradle';
-if (fs.existsSync(gradlePath)) {
-    let content = fs.readFileSync(gradlePath, 'utf8');
-    // 更新 versionName
-    content = content.replace(/versionName "[^"]+"/, `versionName "${cleanVersion}"`);
-
-    // 更新 versionCode (必须是整数)
-    // 方案：将 0.0.1 转换为 1, 1.2.3 转换为 10203 (常用算法)
-    const parts = cleanVersion.split('.').map(Number);
-    const newCode = (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
-    content = content.replace(/versionCode \d+/, `versionCode ${newCode}`);
-
-    fs.writeFileSync(gradlePath, content);
-    console.log(`✅ Android version updated to ${cleanVersion} (${newCode})`);
-}
-
-// 3. 同步到前端 package.json (可选，保持一致性)
+// 2. 同步到前端 package.json (可选，保持一致性)
 const clientPkgPath = 'packages/client/package.json';
 if (fs.existsSync(clientPkgPath)) {
     const clientPkg = JSON.parse(fs.readFileSync(clientPkgPath, 'utf8'));
@@ -46,7 +29,7 @@ if (fs.existsSync(clientPkgPath)) {
     fs.writeFileSync(clientPkgPath, JSON.stringify(clientPkg, null, 2) + '\n');
 }
 
-// 4. 同步到 winres.json (用于 Windows Exe 详细信息)
+// 3. 同步到 winres.json (用于 Windows Exe 详细信息)
 const winresPath = 'packages/server-go/winres/winres.json';
 if (fs.existsSync(winresPath)) {
     const winres = JSON.parse(fs.readFileSync(winresPath, 'utf8'));

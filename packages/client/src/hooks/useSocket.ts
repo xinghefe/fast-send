@@ -11,7 +11,6 @@ interface FakeSocket {
 export const useSocket = (
   baseUrl: string,
   clientId: string,
-  isMobile: boolean,
   isElectron: boolean,
 ) => {
   const [devices, setDevices] = useState<DeviceInfo[]>([])
@@ -45,7 +44,7 @@ export const useSocket = (
       console.log('[Socket] Connected! Client ID:', clientId)
       socket.emit('register', {
         id: clientId,
-        type: isMobile ? 'mobile' : isElectron ? 'desktop' : 'web',
+        type: isElectron ? 'desktop' : 'web',
       })
     }
 
@@ -66,7 +65,7 @@ export const useSocket = (
     return () => {
       ws.close()
     }
-  }, [baseUrl, clientId, isMobile, isElectron])
+  }, [baseUrl, clientId, isElectron])
 
   return { socket, devices }
 }

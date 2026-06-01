@@ -38,26 +38,6 @@ async function main() {
     configStr = configStr.replace(iconDataRegex, newIconData);
     fs.writeFileSync(configGoPath, configStr);
 
-    // 3. Setup Capacitor assets folder
-    const assetsDir = path.join(__dirname, 'packages/client/assets');
-    if (!fs.existsSync(assetsDir)) {
-        fs.mkdirSync(assetsDir, { recursive: true });
-    }
-    // Capacitor requires 1024x1024 icon for generation
-    await sharp(iconPath).resize(1024, 1024).toFile(path.join(assetsDir, 'icon.png'));
-    
-    // Create a splash image as well, say 2732x2732 centered icon
-    await sharp({
-        create: {
-          width: 2732,
-          height: 2732,
-          channels: 4,
-          background: { r: 255, g: 255, b: 255, alpha: 1 }
-        }
-      })
-      .composite([{ input: await sharp(iconPath).resize(512, 512).toBuffer(), gravity: 'center' }])
-      .png()
-      .toFile(path.join(assetsDir, 'splash.png'));
 }
 
 main().catch(console.error);

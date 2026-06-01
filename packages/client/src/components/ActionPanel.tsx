@@ -1,5 +1,5 @@
 ﻿import React, { useRef } from 'react'
-import { Paperclip, Image, Camera, Video, FolderPlus, LucideIcon, CloudUpload } from 'lucide-react'
+import { Paperclip, Image, LucideIcon } from 'lucide-react'
 
 interface ActionButtonProps {
   icon: LucideIcon
@@ -29,55 +29,16 @@ const ActionButton: React.FC<ActionButtonProps> = ({
 
 interface ActionPanelProps {
   isOpen: boolean
-  isMobile: boolean
   onChangeAction: (files: File[]) => void
 }
 
-export const ActionPanel: React.FC<ActionPanelProps> = ({ isOpen, isMobile, onChangeAction }) => {
+export const ActionPanel: React.FC<ActionPanelProps> = ({ isOpen, onChangeAction }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const albumInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
 
   const onActionClick = (type: string) => {
-    // setIsMenuOpen(false)
     if (type === 'file') fileInputRef.current?.click()
-    if (type === 'album') isMobile ? handleBackup() : albumInputRef.current?.click()
-    if (type === 'camera') cameraInputRef.current?.click()
-    if (type === 'video') videoInputRef.current?.click()
-  }
-
-  const handleBackup = async () => {
-    try {
-      const { Camera } = await import("@capacitor/camera")
-      const result = await Camera.pickImages({
-        quality: 100,
-        limit: 0,
-      })
-
-      if (!result.photos || result.photos.length === 0) return
-      // showToast(`正在上传 ${result.photos.length} 项...`, "info")
-
-      const files: File[] = []
-      for (const photo of result.photos) {
-        try {
-          const response = await fetch(photo.webPath)
-          const blob = await response.blob()
-          const fileName = photo.path?.split("/").pop() || `backup_${Date.now()}.${photo.format}`
-          files.push(new File([blob], fileName, { type: blob.type }))
-        } catch (e) { }
-      }
-
-      if (files.length > 0) {
-        await onChangeAction(files)
-        // showToast(`成功上传 ${files.length} 张照片`)
-      }
-    } catch (e: any) {
-      console.error("[Backup] Picker error:", e)
-      if (e.message !== "User cancelled photos app") {
-        // showToast(`上传失败: ${e.message}`, "error")
-      }
-    }
+    if (type === 'album') albumInputRef.current?.click()
   }
 
   return (
@@ -87,7 +48,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({ isOpen, isMobile, onCh
       }`}
     >
       <div className="p-8 mx-auto">
-        <div className={`grid gap-x-8 gap-y-6 grid-cols-4`}>
+        <div className="grid gap-x-8 gap-y-6 grid-cols-2">
           <ActionButton icon={Paperclip} label="文件" onClick={() => onActionClick('file')} />
           <ActionButton
             icon={Image}
@@ -95,22 +56,6 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({ isOpen, isMobile, onCh
             color="emerald"
             onClick={() => onActionClick('album')}
           />
-          {isMobile && (
-            <>
-              <ActionButton
-                icon={Camera}
-                label="拍照"
-                color="orange"
-                onClick={() => onActionClick('camera')}
-              />
-              <ActionButton
-                icon={Video}
-                label="录像"
-                color="rose"
-                onClick={() => onActionClick('video')}
-              />
-            </>
-          )}
         </div>
       </div>
 
@@ -126,22 +71,6 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({ isOpen, isMobile, onCh
         accept="image/*"
         multiple
         ref={albumInputRef}
-        onChange={(e) => e.target.files && onChangeAction(Array.from(e.target.files))}
-        className="hidden"
-      />
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        ref={cameraInputRef}
-        onChange={(e) => e.target.files && onChangeAction(Array.from(e.target.files))}
-        className="hidden"
-      />
-      <input
-        type="file"
-        accept="video/*"
-        capture="environment"
-        ref={videoInputRef}
         onChange={(e) => e.target.files && onChangeAction(Array.from(e.target.files))}
         className="hidden"
       />

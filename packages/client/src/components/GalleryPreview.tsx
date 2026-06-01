@@ -1,17 +1,15 @@
 import React, { useRef, useEffect } from 'react'
-import { X, ChevronLeft, ChevronRight, Download, FileText, FileArchive, Image as ImageIcon } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Download, FileText, FileArchive } from 'lucide-react'
 import { FileInfo } from '../types'
-import { Capacitor } from '@capacitor/core'
 
 interface Props {
   items: FileInfo[]
   initialIndex: number
   baseUrl: string
   onClose: () => void
-  onSaveToAlbum?: (url: string, filename: string) => void
 }
 
-export const GalleryPreview: React.FC<Props> = ({ items, initialIndex, baseUrl, onClose, onSaveToAlbum }) => {
+export const GalleryPreview: React.FC<Props> = ({ items, initialIndex, baseUrl, onClose }) => {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -39,32 +37,15 @@ export const GalleryPreview: React.FC<Props> = ({ items, initialIndex, baseUrl, 
             {items.length} 张内容
           </div>
           <div className="flex gap-4 pointer-events-auto">
-            {Capacitor.isNativePlatform() && (
-              <button
-                onClick={() => {
-                  const index = Math.round(scrollRef.current!.scrollLeft / scrollRef.current!.clientWidth)
-                  const file = items[index]
-                  if (file.type === 'image' || file.type === 'video') {
-                    const url = `${baseUrl}/download/${file.filename}`
-                    onSaveToAlbum?.(url, file.originalName)
-                  }
-                }}
-                className="text-white/70 hover:text-white p-2"
-              >
-                <ImageIcon size={24} />
-              </button>
-            )}
-            {!Capacitor.isNativePlatform() && (
-              <button
-                onClick={() => {
-                  const index = Math.round(scrollRef.current!.scrollLeft / scrollRef.current!.clientWidth)
-                  handleDownload(items[index])
-                }}
-                className="text-white/70 hover:text-white p-2"
-              >
-                <Download size={24} />
-              </button>
-            )}
+            <button
+              onClick={() => {
+                const index = Math.round(scrollRef.current!.scrollLeft / scrollRef.current!.clientWidth)
+                handleDownload(items[index])
+              }}
+              className="text-white/70 hover:text-white p-2"
+            >
+              <Download size={24} />
+            </button>
             <button onClick={onClose} className="text-white/70 hover:text-white p-2">
               <X size={28} />
             </button>
@@ -122,7 +103,7 @@ export const GalleryPreview: React.FC<Props> = ({ items, initialIndex, baseUrl, 
         })}
       </div>
 
-      {items.length > 1 && !Capacitor.isNativePlatform() && (
+      {items.length > 1 && (
         <>
           <button
             onClick={(e) => { e.stopPropagation(); scrollRef.current?.scrollBy({ left: -scrollRef.current.clientWidth }) }}
