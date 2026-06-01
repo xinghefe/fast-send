@@ -11,14 +11,14 @@
   "packageManager": "pnpm@11.5.0",
   "scripts": {
     "server": "cd packages/server-go && go build -o out\\FastSend.exe . && .\\out\\FastSend.exe",
-    "client": "npm run dev --workspace=@fast-send/client",
-    "dev": "concurrently \"npm run client\" \"npm run server\"",
-    "build:client": "npm run build --workspace=@fast-send/client && (if exist packages\\server-go\\dist (rmdir /s /q packages\\server-go\\dist)) && xcopy /e /i /y packages\\client\\dist packages\\server-go\\dist",
+    "client": "pnpm --filter @fast-send/client dev",
+    "dev": "concurrently \"pnpm client\" \"pnpm server\"",
+    "build:client": "pnpm --filter @fast-send/client build && (if exist packages\\server-go\\dist (rmdir /s /q packages\\server-go\\dist)) && xcopy /e /i /y packages\\client\\dist packages\\server-go\\dist",
     "build:go": "node scripts/build-go.js",
     "build:upx": "echo 'UPX disabled to avoid false virus alerts'",
-    "build:all": "node scripts/sync-version.js && npm run build:client && npm run build:go && npm run build:upx",
-    "release": "npm run build:all && echo '打包完成！请手动上传 out 目录下的文件到 GitHub Release。'",
-    "check": "npm run check --workspaces",
+    "build:all": "node scripts/sync-version.js && pnpm build:client && pnpm build:go && pnpm build:upx",
+    "release": "pnpm build:all && echo '打包完成！请手动上传 out 目录下的文件到 GitHub Release。'",
+    "check": "pnpm -r check",
     "format": "prettier --write ."
   },
   "devDependencies": {

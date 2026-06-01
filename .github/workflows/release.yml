@@ -20,25 +20,28 @@ jobs:
           go-version: '1.21'
           cache: true
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: Sync Version
         run: node scripts/sync-version.js ${{ github.ref_name }}
 
       - name: Build Frontend
-        run: npm run build:client
+        run: pnpm run build:client
 
       - name: Build All Desktop Platforms
         run: |
           go install github.com/tc-hib/go-winres@latest
-          npm run build:go
+          pnpm run build:go
 
       - name: Upload Desktop Artifacts
         uses: actions/upload-artifact@v4
@@ -46,56 +49,8 @@ jobs:
           name: FastSend-Desktop
           path: out/FastSend_v*
 
-  build-android:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Sync Version
-        run: node scripts/sync-version.js ${{ github.ref_name }}
-
-      - name: Build Frontend
-        run: npm run build --workspace=@fast-send/client
-
-      - name: Capacitor Sync
-        working-directory: packages/client
-        run: npx cap sync android
-
-      - name: Decode Keystore
-        run: |
-          printf "%s" "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > packages/client/android/app/fastsend-release.jks
-
-      - name: Build Android APK
-        run: npm run build:release-apk
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
-      - name: Upload Android Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: FastSend-Android
-          path: out/FastSend_${{ github.ref_name }}_android_*.apk
-
   create-release:
-    needs: [build-desktop, build-android]
+    needs: [build-desktop]
     runs-on: ubuntu-latest
     steps:
       - name: Download All Artifacts
@@ -114,7 +69,6 @@ jobs:
         with:
           files: |
             out/FastSend_v*
-            out/FastSend_v*.apk
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
