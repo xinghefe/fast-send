@@ -5,7 +5,6 @@ import (
 	"fastsend/internal/api"
 	"fastsend/internal/config"
 	"fastsend/internal/db"
-	"fastsend/internal/discovery"
 	"fastsend/internal/tray"
 	"fastsend/internal/utils"
 	"fastsend/internal/ws"
@@ -100,12 +99,6 @@ func runHTTPServer(hub *ws.Hub, store *db.Store) {
 	r.GET("/ws", func(c *gin.Context) {
 		hub.HandleWS(c.Writer, c.Request)
 	})
-
-	// 启动 mDNS
-	mdnsServer := discovery.RegistermDNS(5678)
-	if mdnsServer != nil {
-		defer mdnsServer.Shutdown()
-	}
 
 	if isRelease {
 		open.Run("http://localhost:5678")

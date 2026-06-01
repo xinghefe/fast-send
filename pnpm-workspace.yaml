@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: false
+  sharp: false
+packages:
+  - packages/client
+  - packages/server-go

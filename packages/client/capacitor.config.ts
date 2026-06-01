@@ -42,7 +42,7 @@ const config: CapacitorConfig = {
     cleartext: true,
     allowNavigation: ['*'],
     // 调试模式下，设置 url 可开启 HMR。正式版构建时不设置此项。
-    url: process.env.CAP_HMR === 'true' ? `http://${getLocalIP()}:5173` : undefined,
+    url: process.env.CAP_HMR === 'true' ? `http://${getLocalIP()}:5574` : undefined,
   },
 }
 

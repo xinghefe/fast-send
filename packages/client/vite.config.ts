@@ -7,7 +7,7 @@ export default defineConfig({
   base: './', // 确保 Electron file:// 协议下资源路径正确
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 5574,
     proxy: {
       '/api': 'http://localhost:5678',
       '/socket.io': {

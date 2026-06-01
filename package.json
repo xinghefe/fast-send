@@ -8,9 +8,10 @@
     "packages/client",
     "packages/server-go"
   ],
+  "packageManager": "pnpm@11.5.0",
   "scripts": {
     "server": "cd packages/server-go && go build -o out\\FastSend.exe . && .\\out\\FastSend.exe",
-    "client": "cd packages/client && cross-env CAP_HMR=true npx cap sync android && npm run dev",
+    "client": "npm run sync:hmr --workspace=@fast-send/client && npm run dev --workspace=@fast-send/client",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "build:client": "npm run build --workspace=@fast-send/client && (if exist packages\\server-go\\dist (rmdir /s /q packages\\server-go\\dist)) && xcopy /e /i /y packages\\client\\dist packages\\server-go\\dist",
     "build:go": "node scripts/build-go.js",

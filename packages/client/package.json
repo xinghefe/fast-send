@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "cross-env CAP_HMR=true vite",
     "build": "tsc && vite build",
-    "sync": "npx cap sync android",
-    "android:open": "npx cap open android",
+    "sync": "cap sync android",
+    "sync:hmr": "cross-env CAP_HMR=true cap sync android",
+    "android:open": "cap open android",
     "preview": "vite preview",
     "check": "tsc --noEmit"
   },
@@ -23,7 +24,6 @@
     "@capacitor/network": "8.0.1",
     "@capacitor/status-bar": "8.0.2",
     "clsx": "^2.1.1",
-    "cordova-plugin-zeroconf": "1.4.2",
     "lucide-react": "^0.460.0",
     "qrcode.react": "4.2.0",
     "react": "^18.3.1",
